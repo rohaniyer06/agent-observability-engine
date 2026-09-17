@@ -1,0 +1,74 @@
+# Cost attribution table (design doc §7.7).
+#
+# This file is the ONLY place per-token prices live. Nothing here is fetched at
+# runtime — it is a manually-refreshed snapshot, and that is the honest answer to
+# "how did you compute cost?": a static pricing table, versioned in git, stamped
+# with the date it was taken.
+#
+# Rates are USD per 1,000,000 tokens, per the Anthropic public pricing table.
+#
+# Cache accounting (matters for any real cost number):
+#   usage.input_tokens on an Anthropic response is the UNCACHED remainder only.
+#   Total prompt size = input_tokens + cache_creation_input_tokens + cache_read_input_tokens.
+#   Cache writes bill at a premium and cache reads at a large discount, so the
+#   multipliers below are applied to the base input rate rather than folding
+#   everything into one number.
+
+version: 1
+as_of: "2026-08-14"
+source: "https://platform.claude.com/docs/en/about-claude/models/overview"
+currency: USD
+
+# Multipliers applied to a model's `input` rate for cached tokens.
+cache_multipliers:
+  # cache_creation_input_tokens with the default 5-minute TTL
+  write_5m: 1.25
+  # cache_creation_input_tokens with ttl: "1h"
+  write_1h: 2.0
+  # cache_read_input_tokens
+  read: 0.1
+
+# Charged when a model is seen that has no entry below. `unknown_model` is
+# deliberately zero-rate + flagged rather than silently guessed: a wrong number
+# that looks plausible is worse than a visible gap. The worker counts these and
+# the dashboard surfaces the count.
+on_unknown_model: flag_zero
+
+models:
+  claude-fable-5:
+    input: 10.00
+    output: 50.00
+  claude-mythos-5:
+    input: 10.00
+    output: 50.00
+  claude-opus-5:
+    input: 5.00
+    output: 25.00
+  claude-opus-4-8:
+    input: 5.00
+    output: 25.00
+  claude-opus-4-7:
+    input: 5.00
+    output: 25.00
+  claude-opus-4-6:
+    input: 5.00
+    output: 25.00
+  claude-sonnet-5:
+    input: 3.00
+    output: 15.00
+    # Introductory pricing runs through 2026-08-31; recorded here so the
+    # assumption is visible rather than buried. Not auto-applied.
+    note: "intro pricing $2.00 / $10.00 per MTok through 2026-08-31"
+  claude-sonnet-4-6:
+    input: 3.00
+    output: 15.00
+  claude-haiku-4-5:
+    input: 1.00
+    output: 5.00
+
+  # Synthetic model used by the harness's simulated provider and by the load
+  # generator. Priced at Haiku rates so cost figures stay comparable between a
+  # simulated run and a real one.
+  sim-haiku:
+    input: 1.00
+    output: 5.00

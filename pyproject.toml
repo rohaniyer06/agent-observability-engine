@@ -1,0 +1,57 @@
+[project]
+name = "agent-observability-engine"
+version = "0.1.0"
+description = "High-throughput agent observability & telemetry engine (ingestion -> Redis Streams -> workers -> Postgres -> query API -> dashboard)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "redis[hiredis]>=5.2",
+    "asyncpg>=0.30",
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "anthropic>=0.40",
+    "langgraph>=0.2.50",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.7",
+]
+
+[project.scripts]
+aoe-migrate = "aoe.db.migrate:main"
+aoe-worker = "aoe.worker.main:main"
+aoe-harness = "aoe.harness.run:main"
+aoe-loadgen = "loadgen.generate:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = [
+    "E501",
+    # `Depends()`/`Query()` in argument defaults is how FastAPI declares
+    # dependencies and query params. B008 exists for mutable defaults and is a
+    # false positive on every FastAPI route in the codebase.
+    "B008",
+]

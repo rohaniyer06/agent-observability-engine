@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.pytest_cache/
+.ruff_cache/
+node_modules/
+dashboard/dist/
+dist/
+build/
+.DS_Store
+loadtest-results/
+*.log
+
+# playwright-mcp scratch
+.playwright-mcp/
+.run/
+
+# Private planning doc — contains personal/employment context, never commit
+agent-observability-engine-design-doc.md
